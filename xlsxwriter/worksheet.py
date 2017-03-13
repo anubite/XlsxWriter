@@ -3838,6 +3838,7 @@ class Worksheet(xmlwriter.XMLwriter):
 
         width = options.get('width', self.default_col_pixels * 3)
         height = options.get('height', self.default_row_pixels * 6)
+        url = options.get('url', None)
 
         width *= x_scale
         height *= y_scale
@@ -3867,10 +3868,26 @@ class Worksheet(xmlwriter.XMLwriter):
 
         drawing_object = [drawing_type]
         drawing_object.extend(dimensions)
-        drawing_object.extend([width, height, None, shape, None,
+        drawing_object.extend([width, height, None, shape, url,
                                None, None])
 
         drawing._add_drawing_object(drawing_object)
+
+        if url:
+            rel_type = "/hyperlink"
+            target_mode = "External"
+
+            if re.match('(ftp|http)s?://', url):
+                target = url
+
+            if re.match('external:', url):
+                target = url.replace('external:', '')
+
+            if re.match("internal:", url):
+                target = url.replace('internal:', '#')
+                target_mode = None
+
+            self.drawing_links.append([rel_type, target, target_mode])
 
     def _prepare_header_image(self, image_id, width, height, name, image_type,
                               position, x_dpi, y_dpi):
